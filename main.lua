@@ -11,33 +11,41 @@ local imgList={
 
 local shader=love.graphics.newShader[[
 extern Image imgTransition;
-extern number time;
+extern float time;
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
 {
-    vec4 c=Texel(texture, texture_coords);
-    if(time<Texel(imgTransition, texture_coords).r){
-        color.a=0.;
-    }
-    return c;
+    vec4 c=Texel(texture,texture_coords);
+    vec4 m=Texel(imgTransition,texture_coords);
+    return vec4(c.r,c.g,c.b,time<m.r?0:1);
 }
 ]]
 
 local Frames=0
 
 function love.load()
-    -- shader:send("imgTransition",imgTransition)
+    shader:send("imgTransition",imgTransition)
     print(shader)
 end
 
 function love.update()
     Frames=Frames+1
+    if Frames==360 then
+        Frames=0
+    end
 end
 
 function love.draw()
-    -- love.graphics.setColor(1,1,1)
-    draw(imgList[1],0,0,0,720/1080)
-    setShader(shader);
-    shader:send("time",Frames%60/60)
-    draw(imgList[2],0,0,0,720/1080)
-    setShader()
+    if Frames<180 then
+        draw(imgList[1],0,0,0,720/1080)
+        setShader(shader);
+        shader:send("time",Frames/180)
+        draw(imgList[2],0,0,0,720/1080)
+        setShader()
+    elseif Frames<360 then
+        draw(imgList[2],0,0,0,720/1080)
+        setShader(shader);
+        shader:send("time",Frames/180-1)
+        draw(imgList[1],0,0,0,720/1080)
+        setShader()
+    end
 end
