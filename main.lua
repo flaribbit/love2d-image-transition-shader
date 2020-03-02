@@ -14,9 +14,11 @@ extern Image imgTransition;
 extern float time;
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
 {
-    vec4 c=Texel(texture,texture_coords);
-    vec4 m=Texel(imgTransition,texture_coords);
-    return vec4(c.r,c.g,c.b,time<m.r?0:1);
+    vec4 c=Texel(texture, texture_coords);
+    if(time<Texel(imgTransition, texture_coords)[0]){
+        c.a=0;
+    }
+    return c;
 }
 ]]
 
