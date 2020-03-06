@@ -10,44 +10,49 @@ local imgList={
 }
 
 local shader=love.graphics.newShader[[
-extern Image imgTransition;
-extern float time;
+extern float border;
+extern float size;
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
 {
-    vec4 c=Texel(texture, texture_coords);
-    if(time<Texel(imgTransition, texture_coords)[0]){
-        c.a=0;
+    if(texture_coords.x<border){
+        float sx=size*9./16.;
+        texture_coords.x=floor(texture_coords.x/sx)*sx;
+        texture_coords.y=floor(texture_coords.y/size)*size;
     }
-    return c;
+    return Texel(texture, texture_coords);
 }
 ]]
 
 local Frames=0
+local border=640
+local size=5
 
 function love.load()
-    shader:send("imgTransition",imgTransition)
+    shader:send("border",640/1280)
+    shader:send("size",5/720)
     print(shader)
 end
 
 function love.update()
     Frames=Frames+1
-    if Frames==360 then
-        Frames=0
+    if love.keyboard.isDown("left") then
+        border=border-2;
+    elseif love.keyboard.isDown("right") then
+        border=border+2;
     end
+    if love.keyboard.isDown("up") then
+        size=size+1;
+    elseif love.keyboard.isDown("down") then
+        size=size-1;
+    end
+    if border<1 then border=1 elseif border>1280 then border=1280 end
+    if size<1 then size=1 elseif size>120 then size=120 end
+    shader:send("border",border/1280)
+    shader:send("size",size/720)
 end
 
 function love.draw()
-    if Frames<180 then
-        draw(imgList[1],0,0,0,720/1080)
-        setShader(shader);
-        shader:send("time",Frames/180)
-        draw(imgList[2],0,0,0,720/1080)
-        setShader()
-    elseif Frames<360 then
-        draw(imgList[2],0,0,0,720/1080)
-        setShader(shader);
-        shader:send("time",Frames/180-1)
-        draw(imgList[1],0,0,0,720/1080)
-        setShader()
-    end
+    setShader(shader);
+    draw(imgList[1],0,0,0,720/1080)
+    setShader()
 end
